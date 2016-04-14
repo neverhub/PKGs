@@ -25,9 +25,9 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
         'change-default-console-loglevel.patch'
         'override_for_missing_acs_capabilities.patch'
         'i915_317.patch')
-sha256sums=('a570680ad5624eff0687c74d652158cbd9ec92fdd177ac5ff812988a24d54ab5'
+sha256sums=('a40defb401e01b37d6b8c8ad5c1bbab665be6ac6310cdeed59950c96b31a519c'
             'SKIP'
-            'a570680ad5624eff0687c74d652158cbd9ec92fdd177ac5ff812988a24d54ab5'
+            '060ad091ebfa2b63d62e86beaf68c3a5d4638c506c3ac941c1825ba756e830b1'
             'SKIP'
             '4e520b53399541b5d166fba4be397756278cbcbc260be87bd3ff324496ac3619'
             '30660541b981bfbf60db8ffdbf75dca63648ca19bc2fba564b4561f6ecc7bf1b'
