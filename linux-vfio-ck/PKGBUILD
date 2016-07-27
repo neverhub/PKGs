@@ -3,7 +3,7 @@ _1k_HZ_ticks=y
 #use -Ofast insane masterrace
 _insane_optimization=y
 
-pkgbase=linux-vfio
+pkgbase=linux-vfio-ck
 _srcname=linux-4.6
 pkgver=4.6.3
 pkgrel=1
