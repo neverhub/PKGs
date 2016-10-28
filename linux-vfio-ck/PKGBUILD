@@ -5,14 +5,14 @@ _insane_optimization=y
 
 pkgbase=linux-vfio-ck
 _srcname=linux-4.8
-pkgver=4.8.2
-pkgrel=1
+pkgver=4.8.4
+pkgrel=4
 arch=('i686' 'x86_64')
 url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'libelf')
 options=('!strip')
-_muqssversion=112
+_muqssversion=116
 _muqsspatch="4.8-sched-MuQSS_$_muqssversion"
 _gcc_patch="enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
 _bfqpath='http://algo.ing.unimo.it/people/paolo/disk_sched/patches/4.8.0-v8r4'
@@ -31,8 +31,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
 'linux.preset'
 "https://github.com/graysky2/kernel_gcc_patch/raw/master/${_gcc_patch}"
 'change-default-console-loglevel.patch'
-'0001-Updated-ACS-override-patch-for-4.6.2.patch'
-'0001-Updated-i915-vga-arbiter-patch-for-4.6.2.patch'
+'0001-pci-Enable-overrides-for-missing-ACS-capabilities-4..patch'
+'0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch'
 # bfq
 "$_bfqpath/$_bfqp1"
 "$_bfqpath/$_bfqp2"
@@ -40,16 +40,16 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
 "$_bfqpath/$_bfqp4")
 sha256sums=('3e9150065f193d3d94bcf46a1fe9f033c7ef7122ab71d75a7fb5a2f0c9a7e11a'
             'SKIP'
-            'edb6e8022172df2b020b53e1cfa32bcde070f3119a6618766066098c46008a9b'
+            '86e246b19253ee3aa971403a5990376a5e33667122f7c8742cc0ee807f204403'
             'SKIP'
-            '57863cbfa5d6d19c6166bc4c3c041da26989b7c41e597f31642d4c09e09b848a'
-            '4a053e009e05fd597b11b3781a7214a20624b188c3c610f9bf9d67039e1c656c'
-            '395e0b97e5cf3d483778d8ff0ec11d305d93597d397305d97efc3b7826a296ed'
+            '102c6519dd503a9f86c461e800e98d6aa1884b1a639c07d60be3acf9756cc377'
+            'df437a9a8346fa20fa5f74a967cd4299b398154c992dab65ddad27071908b26a'
+            'd8752e44ea6025d7017bf84c7d56b3c224902adc657ecf0d5502a680a46d8c2d'
             'f0d90e756f14533ee67afda280500511a62465b4f76adcc5effa95a40045179c'
             'f479a5ca6abe4d50ca4c09e6e83a027369fcd3efff8d5ce60f0699d8fa47beb8'
             '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
-            '7568f319f0cffbf27e79a781e7a21cfe62771bd14ea09d671919368c4f3fcd2f'
-            '6dc172c2ef277223aa59806a2edda7efc4f94d2bf68b6bf2b1d0413e84b9e260'
+            'd36c589e3866535a9ac92911be64795967a05a6d300cc8b70abb79ea24b7b393'
+            '97c6eaff4dfd2059835351afa9466b43569f3eb45f6c57094f57a3f3fad7ec85'
             '1dabd969b18b7e09e2ffeffe4c2430dbc26e5df9868563d54ca95f45c690262f'
             'c8d17a7893d5780fd0c90311470160dcc842b81621b30671150e2e3224be86d2'
             'e47ea5b1c2f20cfade4e6a85bff1320dac84ac638e48ef4eec7285fe9e1e1def'
@@ -114,13 +114,12 @@ prepare() {
   fi
 
   # patches for vga arbiter fix in intel systems
-  # currently broken
-  #msg 'Applying i915 VGA arbitration patch'
-  #patch -Np1 -i "${srcdir}/0001-Updated-i915-vga-arbiter-patch-for-4.6.2.patch"
+  msg 'Applying i915 VGA arbitration patch'
+  patch -Np1 -i "${srcdir}/0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch"
 
   # Overrides for missing acs capabilities
   msg 'Applying ACS override patch'
-  patch -p1 -i "${srcdir}/0001-Updated-ACS-override-patch-for-4.6.2.patch"
+  patch -p1 -i "${srcdir}/0001-pci-Enable-overrides-for-missing-ACS-capabilities-4..patch"
 
   if [ "${_kernelname}" != "" ]; then
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
