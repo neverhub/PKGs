@@ -1,38 +1,33 @@
 #use 1000HZ kernel tick rate
 _1k_HZ_ticks=y
-#use -Ofast insane masterrace
+#use -O3
 _insane_optimization=y
 #disable numa
-_NUMAdisable=y
-#enableBFQ
+_NUMAdisable=
+#enable CK patchset
+_CK=
+#enable BFQ as default I/O sched
 _BFQ=
-#enable MuQss
-_MuQss=
 
 
 
 pkgbase=linux-vfio-ck
-_srcname=linux-4.8
-pkgver=4.8.11
+_srcname=linux-4.9
+pkgver=4.9.6
 pkgrel=1
+_ckpatchversion=1
 arch=('i686' 'x86_64')
 url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'libelf')
 options=('!strip')
-_muqssversion=144
-_muqsspatch="4.8-sched-MuQSS_$_muqssversion"
+_ckpatchname="patch-4.9-ck${_ckpatchversion}"
 _gcc_patch="enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
-_bfqpath='http://algo.ing.unimo.it/people/paolo/disk_sched/patches/4.8.0-v8r4'
-_bfqp1='0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r11-4.8.0.patch'
-_bfqp2='0002-block-introduce-the-BFQ-v7r11-I-O-sched-to-be-ported.patch'
-_bfqp3='0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r11-to-.patch'
-_bfqp4='0004-Turn-BFQ-v7r11-into-BFQ-v8r4-for-4.8.0.patch'
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
 "https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.sign"
 "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
 "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.sign"
-"http://ck.kolivas.org/patches/muqss/4.0/4.8/$_muqsspatch.patch"
+"http://ck.kolivas.org/patches/4.0/4.9/4.9-ck${_ckpatchversion}/${_ckpatchname}.xz"
 # the main kernel config files
 'config' 'config.x86_64'
 # standard config files for mkinitcpio ramdisk
@@ -41,27 +36,20 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
 'change-default-console-loglevel.patch'
 '0001-pci-Enable-overrides-for-missing-ACS-capabilities-4..patch'
 '0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch'
-# bfq
-"$_bfqpath/$_bfqp1"
-"$_bfqpath/$_bfqp2"
-"$_bfqpath/$_bfqp3"
-"$_bfqpath/$_bfqp4")
-sha256sums=('3e9150065f193d3d94bcf46a1fe9f033c7ef7122ab71d75a7fb5a2f0c9a7e11a'
+'0001-x86-fpu-Fix-invalid-FPU-ptrace-state-after-execve.patch')
+sha256sums=('029098dcffab74875e086ae970e3828456838da6e0ba22ce3f64ef764f3d7f1a'
             'SKIP'
-            '53d84946cbe641a2a74ed6cbdd35840bb4947cefd34a764c31b7dac5cde5c696'
+            'cd0d5ea27c487a7d1354ba3e80f85af4924b77ad1180f1fbfaf6844ae03c8728'
             'SKIP'
-            '597ca3b2f5ab6e75162ef796dc1678da95c426ba00b3488dea3f5d69146671d9'
-            '2ac8818414beb7dbacbd3ad450c516e6ada804827132a7132f63b8189e5f5151'
-            '41b9a64542befd2fea170776e8ec22a7d158dd3273633afc9b91662c448cd90a'
-            'f0d90e756f14533ee67afda280500511a62465b4f76adcc5effa95a40045179c'
-            'f479a5ca6abe4d50ca4c09e6e83a027369fcd3efff8d5ce60f0699d8fa47beb8'
+            '5b9d8f4ef73f87e8595de66ccc38bad86e290fd9453bd536b9cc950f5344b82d'
+            'b5c2a685667a884477904c9fb337d944667b6144720ac2a67d1116f711e70768'
+            'ab6c0fab5b147fab9ccef90c62b963510e92fbd068a6a33b9619537243fedca4'
+            'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
+            '4ffa08f00cab1d2a97d0fee3f42462c26cc66b6d75158940cc1718cd9fe1daf9'
             '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
             'd36c589e3866535a9ac92911be64795967a05a6d300cc8b70abb79ea24b7b393'
             '97c6eaff4dfd2059835351afa9466b43569f3eb45f6c57094f57a3f3fad7ec85'
-            '1dabd969b18b7e09e2ffeffe4c2430dbc26e5df9868563d54ca95f45c690262f'
-            'c8d17a7893d5780fd0c90311470160dcc842b81621b30671150e2e3224be86d2'
-            'e47ea5b1c2f20cfade4e6a85bff1320dac84ac638e48ef4eec7285fe9e1e1def'
-            'c3c96e304aef378f0cc6e1fb18eeabe176e6ba918d13060c105f3d8cabc85f59')
+            '3e955e0f1aae96bb6c1507236adc952640c9bd0a134b9995ab92106a33dc02d9')
 validpgpkeys=(
 'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
 '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -75,9 +63,11 @@ prepare() {
   # add upstream patch
   patch -p1 -i "${srcdir}/patch-${pkgver}"
 
-  # add latest fixes from stable queue, if needed
-  # http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git
-  
+  # Revert a commit that causes memory corruption in i686 chroots on our
+  # build server ("valgrind bash" immediately crashes)
+  # https://bugzilla.kernel.org/show_bug.cgi?id=190061
+  patch -Rp1 -i "${srcdir}/0001-x86-fpu-Fix-invalid-FPU-ptrace-state-after-execve.patch"
+
   msg 'Applying gcc optimization patch'
   # patch source to enable more gcc CPU optimizatons via the make nconfig
   patch -Np1 -i "${srcdir}/${_gcc_patch}"
@@ -88,18 +78,10 @@ prepare() {
   patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
 
 
-  # patch source with MuQss
-  if [ -n "$_MuQss" ]; then
-    msg "Patching source with MuQSS"
-    patch -Np1 -i "$srcdir/$_muqsspatch.patch"
-  fi
-
-  if [ -n "$_BFQ" ]; then
-    msg "Patching source with BFQ patches"
-    patch -Np1 -i "$srcdir/$_bfqp1"
-    patch -Np1 -i "$srcdir/$_bfqp2"
-    patch -Np1 -i "$srcdir/$_bfqp3"
-    patch -Np1 -i "$srcdir/$_bfqp4"
+  # patch source with ck-patchset
+  if [ -n "$_CK" ]; then
+    msg "Patching source with ck-patchset"
+    patch -Np1 -i "${srcdir}/${_ckpatchname}"
   fi
 
   # Clean tree and copy ARCH config over
@@ -135,15 +117,15 @@ prepare() {
       -i -e 's/^# CONFIG_HZ_1000 is not set/CONFIG_HZ_1000=y/' \
       -i -e 's/^CONFIG_HZ=300/CONFIG_HZ=1000/' .config
   fi
-  #-Ofast optimization
+  #-O3 optimization
   if [ -n "$_insane_optimization" ]; then
-    msg "Setting Ofast optimization..."
-    sed -i 's/-O2/-Ofast/g' "${srcdir}/${_srcname}/Makefile"
+    msg "Setting O3 optimization..."
+    sed -i 's/-O2/-O3/g' "${srcdir}/${_srcname}/Makefile"
   fi
 
   # patches for vga arbiter fix in intel systems
-  msg 'Applying i915 VGA arbitration patch'
-  patch -Np1 -i "${srcdir}/0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch"
+#  msg 'Applying i915 VGA arbitration patch'
+#  patch -Np1 -i "${srcdir}/0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch"
 
   # Overrides for missing acs capabilities
   msg 'Applying ACS override patch'
@@ -153,11 +135,12 @@ prepare() {
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
     sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
   fi
-
-  msg "Setting BFQ as default I/O scheduler..."
-  sed -i -e '/CONFIG_DEFAULT_IOSCHED/ s,cfq,bfq,' \
-    -i -e s'/CONFIG_DEFAULT_CFQ=y/# CONFIG_DEFAULT_CFQ is not set\nCONFIG_DEFAULT_BFQ=y/' ./.config
-
+  
+  if [-n "$_BFQ" ]; then
+    msg "Setting BFQ as default I/O scheduler..."
+    sed -i -e '/CONFIG_DEFAULT_IOSCHED/ s,cfq,bfq,' \
+      -i -e s'/CONFIG_DEFAULT_CFQ=y/# CONFIG_DEFAULT_CFQ is not set\nCONFIG_DEFAULT_BFQ=y/' ./.config
+  fi
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
@@ -185,7 +168,14 @@ build() {
   make ${MAKEFLAGS} LOCALVERSION= bzImage modules
 }
 
-_common_package() {
+_package() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  [ "${pkgbase}" = "linux" ] && groups=('base')
+  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
+  optdepends=('crda: to set the correct wireless channels of your country')
+  backup=("etc/mkinitcpio.d/${pkgbase}.preset")
+  install=linux.install
+
   cd "${srcdir}/${_srcname}"
 
   KARCH=x86
@@ -194,36 +184,23 @@ _common_package() {
   _kernver="$(make LOCALVERSION= kernelrelease)"
   _basekernel=${_kernver%%-*}
   _basekernel=${_basekernel%.*}
-}
-
-_package() {
-  pkgdesc="The Linux kernel and modules with patches to enable smooth GPU passthrough with KVM"
-  [ "${pkgbase}" = "linux" ] && groups=('base')
-  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
-  optdepends=('crda: to set the correct wireless channels of your country')
-  backup=("etc/mkinitcpio.d/${pkgbase}.preset")
-  install=linux.install
 
   mkdir -p "${pkgdir}"/{lib/modules,lib/firmware,boot}
   make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}" modules_install
   cp arch/$KARCH/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgbase}"
 
   # set correct depmod command for install
-  cp -f "${startdir}/${install}" "${startdir}/${install}.pkg"
+  sed -e "s|%PKGBASE%|${pkgbase}|g;s|%KERNVER%|${_kernver}|g" \
+    "${startdir}/${install}" > "${startdir}/${install}.pkg"
   true && install=${install}.pkg
-  sed \
-    -e  "s/KERNEL_NAME=.*/KERNEL_NAME=${_kernelname}/" \
-    -e  "s/KERNEL_VERSION=.*/KERNEL_VERSION=${_kernver}/" \
-    -i "${startdir}/${install}"
 
   # install mkinitcpio preset file for kernel
-  install -D -m644 "${srcdir}/linux.preset" "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
-  sed \
-    -e "1s|'linux.*'|'${pkgbase}'|" \
-    -e "s|ALL_kver=.*|ALL_kver=\"/boot/vmlinuz-${pkgbase}\"|" \
-    -e "s|default_image=.*|default_image=\"/boot/initramfs-${pkgbase}.img\"|" \
-    -e "s|fallback_image=.*|fallback_image=\"/boot/initramfs-${pkgbase}-fallback.img\"|" \
-    -i "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
+  sed "s|%PKGBASE%|${pkgbase}|g" "${srcdir}/linux.preset" |
+    install -D -m644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
+
+  # install pacman hook for initramfs regeneration
+  sed "s|%PKGBASE%|${pkgbase}|g" "${srcdir}/99-linux.hook" |
+    install -D -m644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/99-${pkgbase}.hook"
 
   # remove build and source links
   rm -f "${pkgdir}"/lib/modules/${_kernver}/{source,build}
@@ -243,27 +220,27 @@ _package() {
   mv "${pkgdir}/lib" "${pkgdir}/usr/"
 
   # add vmlinux
-  install -D -m644 vmlinux "${pkgdir}/usr/lib/modules/${_kernver}/build/vmlinux" 
+  install -D -m644 vmlinux "${pkgdir}/usr/lib/modules/${_kernver}/build/vmlinux"
 }
 
 _package-headers() {
-pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
 
-install -dm755 "${pkgdir}/usr/lib/modules/${_kernver}"
+  install -dm755 "${pkgdir}/usr/lib/modules/${_kernver}"
 
-cd "${srcdir}/${_srcname}"
-install -D -m644 Makefile \
-  "${pkgdir}/usr/lib/modules/${_kernver}/build/Makefile"
-install -D -m644 kernel/Makefile \
-  "${pkgdir}/usr/lib/modules/${_kernver}/build/kernel/Makefile"
-install -D -m644 .config \
-  "${pkgdir}/usr/lib/modules/${_kernver}/build/.config"
+  cd "${srcdir}/${_srcname}"
+  install -D -m644 Makefile \
+    "${pkgdir}/usr/lib/modules/${_kernver}/build/Makefile"
+  install -D -m644 kernel/Makefile \
+    "${pkgdir}/usr/lib/modules/${_kernver}/build/kernel/Makefile"
+  install -D -m644 .config \
+    "${pkgdir}/usr/lib/modules/${_kernver}/build/.config"
 
-mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/include"
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/include"
 
-for i in acpi asm-generic config crypto drm generated keys linux math-emu \
-  media net pcmcia scsi sound trace uapi video xen; do
-cp -a include/${i} "${pkgdir}/usr/lib/modules/${_kernver}/build/include/"
+  for i in acpi asm-generic config crypto drm generated keys linux math-emu \
+    media net pcmcia scsi soc sound trace uapi video xen; do
+    cp -a include/${i} "${pkgdir}/usr/lib/modules/${_kernver}/build/include/"
   done
 
   # copy arch includes for external modules
@@ -346,8 +323,8 @@ cp -a include/${i} "${pkgdir}/usr/lib/modules/${_kernver}/build/include/"
 
   # add objtool for external module building and enabled VALIDATION_STACK option
   if [ -f tools/objtool/objtool ];  then
-    mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/tools/objtool"
-    cp -a tools/objtool/objtool ${pkgdir}/usr/lib/modules/${_kernver}/build/tools/objtool/ 
+      mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/tools/objtool"
+      cp -a tools/objtool/objtool ${pkgdir}/usr/lib/modules/${_kernver}/build/tools/objtool/
   fi
 
   chown -R root.root "${pkgdir}/usr/lib/modules/${_kernver}/build"
@@ -355,46 +332,45 @@ cp -a include/${i} "${pkgdir}/usr/lib/modules/${_kernver}/build/include/"
 
   # strip scripts directory
   find "${pkgdir}/usr/lib/modules/${_kernver}/build/scripts" -type f -perm -u+w 2>/dev/null | while read binary ; do
-  case "$(file -bi "${binary}")" in
-    *application/x-sharedlib*) # Libraries (.so)
-      /usr/bin/strip ${STRIP_SHARED} "${binary}";;
-    *application/x-archive*) # Libraries (.a)
-      /usr/bin/strip ${STRIP_STATIC} "${binary}";;
-    *application/x-executable*) # Binaries
-      /usr/bin/strip ${STRIP_BINARIES} "${binary}";;
-  esac
-done
+    case "$(file -bi "${binary}")" in
+      *application/x-sharedlib*) # Libraries (.so)
+        /usr/bin/strip ${STRIP_SHARED} "${binary}";;
+      *application/x-archive*) # Libraries (.a)
+        /usr/bin/strip ${STRIP_STATIC} "${binary}";;
+      *application/x-executable*) # Binaries
+        /usr/bin/strip ${STRIP_BINARIES} "${binary}";;
+    esac
+  done
 
-# remove unneeded architectures
-rm -rf "${pkgdir}"/usr/lib/modules/${_kernver}/build/arch/{alpha,arc,arm,arm26,arm64,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,metag,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,xtensa}
+  # remove unneeded architectures
+  rm -rf "${pkgdir}"/usr/lib/modules/${_kernver}/build/arch/{alpha,arc,arm,arm26,arm64,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,metag,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,xtensa}
 
-# remove a files already in linux-docs package
-rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/kbuild/Kconfig.recursion-issue-01"
-rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/kbuild/Kconfig.recursion-issue-02"
-rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/kbuild/Kconfig.select-break"
+  # remove a files already in linux-docs package
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/kbuild/Kconfig.recursion-issue-01"
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/kbuild/Kconfig.recursion-issue-02"
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/kbuild/Kconfig.select-break"
 }
 
 _package-docs() {
-pkgdesc="Kernel hackers manual - HTML documentation that comes with the ${pkgbase/linux/Linux} kernel"
+  pkgdesc="Kernel hackers manual - HTML documentation that comes with the ${pkgbase/linux/Linux} kernel"
 
-cd "${srcdir}/${_srcname}"
+  cd "${srcdir}/${_srcname}"
 
-mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build"
-cp -al Documentation "${pkgdir}/usr/lib/modules/${_kernver}/build"
-find "${pkgdir}" -type f -exec chmod 444 {} \;
-find "${pkgdir}" -type d -exec chmod 755 {} \;
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build"
+  cp -al Documentation "${pkgdir}/usr/lib/modules/${_kernver}/build"
+  find "${pkgdir}" -type f -exec chmod 444 {} \;
+  find "${pkgdir}" -type d -exec chmod 755 {} \;
 
-# remove a file already in linux package
-rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/DocBook/Makefile"
+  # remove a file already in linux package
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/DocBook/Makefile"
 }
 
 pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-docs")
 for _p in ${pkgname[@]}; do
   eval "package_${_p}() {
-  $(declare -f "_package${_p#${pkgbase}}")
-  _common_package
-  _package${_p#${pkgbase}}
-}"
+    $(declare -f "_package${_p#${pkgbase}}")
+    _package${_p#${pkgbase}}
+  }"
 done
 
 # vim:set ts=8 sts=2 sw=2 et:
