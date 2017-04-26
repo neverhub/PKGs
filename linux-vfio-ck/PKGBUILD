@@ -12,8 +12,8 @@ _BFQ=
 
 
 pkgbase=linux-vfio-ck
-_srcname=linux-4.9
-pkgver=4.9.6
+_srcname=linux-4.10
+pkgver=4.10.12
 pkgrel=1
 _ckpatchversion=1
 arch=('i686' 'x86_64')
@@ -21,35 +21,33 @@ url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'libelf')
 options=('!strip')
-_ckpatchname="patch-4.9-ck${_ckpatchversion}"
+_ckpatchname="patch-4.10-ck${_ckpatchversion}"
 _gcc_patch="enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
 "https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.sign"
 "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
 "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.sign"
-"http://ck.kolivas.org/patches/4.0/4.9/4.9-ck${_ckpatchversion}/${_ckpatchname}.xz"
+"http://ck.kolivas.org/patches/4.0/4.10/4.10-ck${_ckpatchversion}/${_ckpatchname}.xz"
 # the main kernel config files
-'config' 'config.x86_64'
+'config.i686' 'config.x86_64'
+'90-linux.hook'
 # standard config files for mkinitcpio ramdisk
 'linux.preset'
 "https://github.com/graysky2/kernel_gcc_patch/raw/master/${_gcc_patch}"
-'change-default-console-loglevel.patch'
 '0001-pci-Enable-overrides-for-missing-ACS-capabilities-4..patch'
-'0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch'
-'0001-x86-fpu-Fix-invalid-FPU-ptrace-state-after-execve.patch')
-sha256sums=('029098dcffab74875e086ae970e3828456838da6e0ba22ce3f64ef764f3d7f1a'
+'0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch')
+sha256sums=('3c95d9f049bd085e5c346d2c77f063b8425f191460fcd3ae9fe7e94e0477dc4b'
             'SKIP'
-            'cd0d5ea27c487a7d1354ba3e80f85af4924b77ad1180f1fbfaf6844ae03c8728'
+            'ed919b49178bbda14b341058a92362322cbb09e9028229e860e6927553c8d037'
             'SKIP'
-            '5b9d8f4ef73f87e8595de66ccc38bad86e290fd9453bd536b9cc950f5344b82d'
-            'b5c2a685667a884477904c9fb337d944667b6144720ac2a67d1116f711e70768'
-            'ab6c0fab5b147fab9ccef90c62b963510e92fbd068a6a33b9619537243fedca4'
+            '1913eeb921bbef3733b53f4004a3013289fa85a26409610bb14fcff3bbd7ef72'
+            '386051f19482672c871e7865fc62f5e2c8010d857729134ba13044734962e42c'
+            '12a87284e2935cd17e2846a207cc76f1728531416523735d66ef8a0ae690884c'
+            '834bd254b56ab71d73f59b3221f056c72f559553c04718e350ab2a3e2991afe0'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
-            '4ffa08f00cab1d2a97d0fee3f42462c26cc66b6d75158940cc1718cd9fe1daf9'
-            '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
-            'd36c589e3866535a9ac92911be64795967a05a6d300cc8b70abb79ea24b7b393'
-            '97c6eaff4dfd2059835351afa9466b43569f3eb45f6c57094f57a3f3fad7ec85'
-            '3e955e0f1aae96bb6c1507236adc952640c9bd0a134b9995ab92106a33dc02d9')
+            'ed27e1f4df4e356f0a30d9198109fa1d344833973782956a11bfa2eec40f11f2'
+            '773b2a7db63dbc38336e04e25d5017a2a02c49e424cfa32beedb4e47a5027d2c'
+            '0bef31f6d1415398cb2e78d58798aa49e146b27c87764da181b6d41bd4e577eb')
 validpgpkeys=(
 'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
 '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -63,20 +61,9 @@ prepare() {
   # add upstream patch
   patch -p1 -i "${srcdir}/patch-${pkgver}"
 
-  # Revert a commit that causes memory corruption in i686 chroots on our
-  # build server ("valgrind bash" immediately crashes)
-  # https://bugzilla.kernel.org/show_bug.cgi?id=190061
-  patch -Rp1 -i "${srcdir}/0001-x86-fpu-Fix-invalid-FPU-ptrace-state-after-execve.patch"
-
   msg 'Applying gcc optimization patch'
   # patch source to enable more gcc CPU optimizatons via the make nconfig
   patch -Np1 -i "${srcdir}/${_gcc_patch}"
-
-  # set DEFAULT_CONSOLE_LOGLEVEL to 4 (same value as the 'quiet' kernel param)
-  # remove this when a Kconfig knob is made available by upstream
-  # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
-  patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
-
 
   # patch source with ck-patchset
   if [ -n "$_CK" ]; then
@@ -84,15 +71,20 @@ prepare() {
     patch -Np1 -i "${srcdir}/${_ckpatchname}"
   fi
 
+
+  msg 'Applying i915 VGA arbitration patch'
+  patch -Np1 -i "${srcdir}/0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch"
+
+  # Overrides for missing acs capabilities
+  msg 'Applying ACS override patch'
+  patch -p1 -i "${srcdir}/0001-pci-Enable-overrides-for-missing-ACS-capabilities-4..patch"
+
   # Clean tree and copy ARCH config over
   msg "Running make mrproper to clean source tree"
   make mrproper
 
-  if [ "${CARCH}" = "x86_64" ]; then
-    cat "${srcdir}/config.x86_64" > ./.config
-  else
-    cat "${srcdir}/config" > ./.config
-  fi
+    cat "${srcdir}/config.${CARCH}" > ./.config
+
   ### Optionally disable NUMA for 64-bit kernels only
     # (x86 kernels do not support NUMA)
   if [ -n "$_NUMAdisable" ]; then
@@ -123,20 +115,12 @@ prepare() {
     sed -i 's/-O2/-O3/g' "${srcdir}/${_srcname}/Makefile"
   fi
 
-  # patches for vga arbiter fix in intel systems
-#  msg 'Applying i915 VGA arbitration patch'
-#  patch -Np1 -i "${srcdir}/0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch"
-
-  # Overrides for missing acs capabilities
-  msg 'Applying ACS override patch'
-  patch -p1 -i "${srcdir}/0001-pci-Enable-overrides-for-missing-ACS-capabilities-4..patch"
-
   if [ "${_kernelname}" != "" ]; then
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
     sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
   fi
   
-  if [-n "$_BFQ" ]; then
+  if [ -n "$_BFQ" ]; then
     msg "Setting BFQ as default I/O scheduler..."
     sed -i -e '/CONFIG_DEFAULT_IOSCHED/ s,cfq,bfq,' \
       -i -e s'/CONFIG_DEFAULT_CFQ=y/# CONFIG_DEFAULT_CFQ is not set\nCONFIG_DEFAULT_BFQ=y/' ./.config
@@ -199,7 +183,7 @@ _package() {
     install -D -m644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 
   # install pacman hook for initramfs regeneration
-  sed "s|%PKGBASE%|${pkgbase}|g" "${srcdir}/99-linux.hook" |
+  sed "s|%PKGBASE%|${pkgbase}|g" "${srcdir}/90-linux.hook" |
     install -D -m644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/99-${pkgbase}.hook"
 
   # remove build and source links
