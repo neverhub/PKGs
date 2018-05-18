@@ -1,14 +1,14 @@
 #use 1000HZ kernel tick rate
 _1k_HZ_ticks=y
 #use -O3
-_insane_optimization=
+#_insane_optimization=y
 #enable CK patchset
-_CK=
+#_CK=
 
 
 pkgbase=linux-vfio-ck
-_srcname=linux-4.15
-pkgver=4.15.7
+_srcname=linux-4.16
+pkgver=4.16.8
 pkgrel=1
 _ckpatchversion=1
 arch=('x86_64')
@@ -16,38 +16,40 @@ url="https://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'kmod' 'inetutils' 'bc' 'libelf')
 options=('!strip')
-_ckpatchname="patch-4.15-ck${_ckpatchversion}"
-_gcc_patch="enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v4.13+.patch"
+_ckpatchname="patch-4.16-ck${_ckpatchversion}"
+_gcc_more_v='20180509'
 source=(
   https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.{xz,sign}
   https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.{xz,sign}
-  http://ck.kolivas.org/patches/4.0/4.15/4.15-ck${_ckpatchversion}/${_ckpatchname}.xz
+  http://ck.kolivas.org/patches/4.0/4.16/4.16-ck${_ckpatchversion}/${_ckpatchname}.xz
   # the main kernel config files
   config
   60-linux.hook
   90-linux.hook
   # standard config files for mkinitcpio ramdisk
   linux.preset
-  https://github.com/graysky2/kernel_gcc_patch/raw/master/${_gcc_patch}
+  "enable_additional_cpu_optimizations-$_gcc_more_v.tar.gz::https://github.com/graysky2/kernel_gcc_patch/archive/$_gcc_more_v.tar.gz" # enable_additional_cpu_optimizations_for_gcc
   0001-pci-Enable-overrides-for-missing-ACS-capabilities-4.patch
   0001-i915-Add-module-option-to-support-VGA-arbiter-on-HD-.patch
   0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
   0002-drm-i915-edp-Only-use-the-alternate-fixed-mode-if-it.patch
+  0003-Partially-revert-swiotlb-remove-various-exports.patch
     )
-sha256sums=('5a26478906d5005f4f809402e981518d2b8844949199f60c4b6e1f986ca2a769'
+sha256sums=('63f6dc8e3c9f3a0273d5d6f4dca38a2413ca3a5f689329d05b750e4c87bb21b9'
             'SKIP'
-            '0dad200b26837acd0340dfe18d9610467c111df5719440248cd8be6fb8d6dd02'
+            '6fb2db1e38f762e6a028dfa5e6d094f0eb4324572667923aca3d64c87117772d'
             'SKIP'
-            'af51d2433340fdd88a73fdfdfa88b304b3933a937c7ef16a22ba73950360de71'
-            'f38927db126ec7141ea2dd70cabb2ef378552672b31db4ab621493928497abd7'
+            '61cd4b129eac475ad82fcdbbf9952b80e81e7c893776c00e3b6a658b950d0b26'
+            '8566a49997faf3f8678440c52578a7a0ee901e598d3b67d3bee3799fb92e8f86'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
-            '8b00041911e67654b0bd9602125853a1a94f6155c5cac4f886507554c8324ee8'
-            '1a4a992199d4d70f7f35735f63a634bb605c2b594b7352ad5fd54512737d2784'
-            '7cb4a5da6bf551dbb2db2e0b4e4d0774ee98cc30d9e617e030b27e6cba3e6293'
-            '19b17156ea5aec86e4eb87fc855789375a5184faf564b4ac2cd0f279de7b3bf9'
-            'f49e23e2a00357f8a5f6cc5caadd56a4df2b0a3e2b53d76a514ca508f25a62a7')
+            '226e30068ea0fecdb22f337391385701996bfbdba37cdcf0f1dbf55f1080542d'
+            'abe269c6596b54a412bd8415472153f419026d4f367fa3ee1ebc8693ac66915d'
+            'fe3d47fe6f54d4a82c869fd29484d3f097b5906ef4d456409961a8dd647daad0'
+            '7fb607fe384dd814e9e45d7fc28f7b5b23a51d80784c54bf9209486ad428be14'
+            'ceaa19e0af3842c62eb666a4ac5c79d89b3e6d00593442f18d6508ca6d74bbaa'
+            '5b397cf9eccdad0c1f2865842c29ba6f4e32ad7dbe4e0c6ef6ca6f07d2963cea')
 validpgpkeys=(
 'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
 '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -61,20 +63,25 @@ prepare() {
   # add upstream patch
   patch -p1 -i "${srcdir}/patch-${pkgver}"
 
+  # add latest fixes from stable queue, if needed
+  # http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git
+
   # disable USER_NS for non-root users by default
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
 
   # https://bugs.archlinux.org/task/56711
   patch -Np1 -i ../0002-drm-i915-edp-Only-use-the-alternate-fixed-mode-if-it.patch
-  
+
+  # NVIDIA driver compat
+  patch -Np1 -i ../0003-Partially-revert-swiotlb-remove-various-exports.patch 
+
   msg 'Applying gcc optimization patch'
   # patch source to enable more gcc CPU optimizatons via the make nconfig
-  patch -Np1 -i "${srcdir}/${_gcc_patch}"
-
+  patch -Np1 -i "../kernel_gcc_patch-$_gcc_more_v/enable_additional_cpu_optimizations_for_gcc_v8.1+_kernel_v4.13+.patch"
   # patch source with ck-patchset
   if [ -n "$_CK" ]; then
     msg "Patching source with ck-patchset"
-    patch -Np1 -i "${srcdir}/${_ckpatchname}"
+    patch -Np1 -i "../${_ckpatchname}"
   fi
 
   msg 'Applying i915 VGA arbitration patch'
@@ -106,8 +113,10 @@ END
     sed -i 's/-O2/-O3/g' "${srcdir}/${_srcname}/Makefile"
   fi
 
-  # set extraversion to pkgrel
-  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+  # set extraversion to pkgrel and empty localversion
+  sed -e "/^EXTRAVERSION =/s/=.*/= -${pkgrel}/" \
+      -e "/^EXTRAVERSION =/aLOCALVERSION =" \
+      -i Makefile
 
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
@@ -130,7 +139,7 @@ END
 build() {
   cd ${_srcname}
 
-  make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+  make bzImage modules
 }
 
 _package() {
@@ -144,12 +153,12 @@ _package() {
   cd ${_srcname}
 
   # get kernel version
-  _kernver="$(make LOCALVERSION= kernelrelease)"
+  _kernver="$(make kernelrelease)"
   _basekernel=${_kernver%%-*}
   _basekernel=${_basekernel%.*}
 
   mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
-  make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
+  make INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
   cp arch/x86/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgbase}"
 
   # make room for external modules
@@ -211,9 +220,6 @@ _package-headers() {
 
   install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
   install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
-
-  # http://bugs.archlinux.org/task/9912
-  install -Dt "${_builddir}/drivers/media/dvb-core" -m644 drivers/media/dvb-core/*.h
 
   # http://bugs.archlinux.org/task/13146
   install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
