@@ -7,7 +7,7 @@ _insane_optimization=y
 
 
 pkgbase=linux-vfio-ck
-_srcver=4.19.4-arch1
+_srcver=5.0
 pkgver=${_srcver%-*}
 pkgrel=1
 _ckpatchversion=1
@@ -16,11 +16,11 @@ url="https://www.kernel.org/"
 license=('GPL2')
 makedepends=('kmod' 'inetutils' 'bc' 'libelf')
 options=('!strip')
-_ckpatchname="patch-4.19-ck${_ckpatchversion}"
+_ckpatchname="patch-4.20-ck${_ckpatchversion}"
 _gcc_more_v='20180509'
 source=(
-  https://www.kernel.org/pub/linux/kernel/v4.x/linux-$pkgver.tar.{xz,sign}
-  http://ck.kolivas.org/patches/4.0/4.19/4.19-ck${_ckpatchversion}/${_ckpatchname}.xz
+  https://www.kernel.org/pub/linux/kernel/v5.x/linux-$pkgver.tar.{xz,sign}
+  http://ck.kolivas.org/patches/4.0/4.20/4.20-ck${_ckpatchversion}/${_ckpatchname}.xz
   # the main kernel config files
   config
   60-linux.hook
@@ -31,16 +31,16 @@ source=(
   add-acs-overrides.patch
   i915-vga-arbiter.patch
     )
-sha256sums=('a38f5606bba1f5611c798541f6c3d43267b8599d9e3167471d4b662e33ff47aa'
+sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             'SKIP'
-            '77863d16a08e1b3c726b6c965f1bb7c672bd7317776810121062b73f9ea26780'
-            'e7fa30bb2de12d1a2488423e27c00f26d55668e310e69aaf93673c1afd89dbaf'
+            '4bd614333fcbe509118b5362889f76d241e1d33e1ee691bd24fd82384ce7f2de'
+            'df2ce998b050c707950c555f7f6ec0efcb8498fca10b4bce45f681844c8aa0ab'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
-            '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
+            'c043f3033bb781e2688794a59f6d1f7ed49ef9b13eb77ff9a425df33a244a636'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             '226e30068ea0fecdb22f337391385701996bfbdba37cdcf0f1dbf55f1080542d'
-            'b80cb03185fa71a893c33e43b5899bf567ad12b9ce2d3de8122e6a81745890eb'
-            '6f026e30da5d26b0b4ffda0b9ba2ddd13a476ea503e3fedd3a7551ab1f1e806d')
+            'dbf4ac4b873ce6972e63b78d74ddba18f2701716163bb7f4b4fe5e909346a6e1'
+            'afb4c025d1180c1c8d9419910910f44755a4aefc711c2f0d4fee374d6b33e0d5')
 validpgpkeys=(
 'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
 '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -109,7 +109,6 @@ build() {
   cd linux-${pkgver}
   make bzImage modules htmldocs
 }
-
 _package() {
   pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
   [[ $pkgbase = linux ]] && groups=(base)
@@ -119,20 +118,18 @@ _package() {
   install=linux.install
 
   local kernver="$(<version)"
+  local modulesdir="$pkgdir/usr/lib/modules/$kernver"
+
   cd linux-${pkgver}
 
   msg2 "Installing boot image..."
-  local image="$pkgdir/boot/vmlinuz-$pkgbase"
-  install -Dm644 "$(make -s image_name)" "$image"
-
-  msg2 "Installing modules..."
-  local modulesdir="$pkgdir/usr/lib/modules/$kernver"
-  mkdir -p "$modulesdir"
-  make INSTALL_MOD_PATH="$pkgdir/usr" modules_install
-
   # systemd expects to find the kernel here to allow hibernation
   # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
-  ln -sr "$image" "$modulesdir/vmlinuz"
+  install -Dm644 "$(make -s image_name)" "$modulesdir/vmlinuz"
+  install -Dm644 "$modulesdir/vmlinuz" "$pkgdir/boot/vmlinuz-$pkgbase"
+
+  msg2 "Installing modules..."
+  make INSTALL_MOD_PATH="$pkgdir/usr" modules_install
 
   # a place for external modules,
   # with version file for building modules and running depmod from hook

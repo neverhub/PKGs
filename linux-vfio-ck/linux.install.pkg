@@ -8,3 +8,5 @@ post_remove() {
   rm -f boot/initramfs-linux-vfio-ck.img
   rm -f boot/initramfs-linux-vfio-ck-fallback.img
 }
+
+# vim:set ft=sh ts=8 sts=2 sw=2 et:
