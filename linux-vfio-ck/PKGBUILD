@@ -1,26 +1,30 @@
+#enable CK patchset
+#_CK=y
+#enable acs patchset
+_ACS=y
 #use 1000HZ kernel tick rate
 #_1k_HZ_ticks=y
 #use -O3
 _insane_optimization=y
-#enable CK patchset
-#_CK=
 
 
 pkgbase=linux-vfio-ck
-_srcver=5.0
+_srcver=5.0.7
 pkgver=${_srcver%-*}
 pkgrel=1
 _ckpatchversion=1
 arch=('x86_64')
 url="https://www.kernel.org/"
 license=('GPL2')
-makedepends=('kmod' 'inetutils' 'bc' 'libelf')
+makedepends=(xmlto kmod inetutils bc libelf python-sphinx graphviz)
 options=('!strip')
-_ckpatchname="patch-4.20-ck${_ckpatchversion}"
+_ckpatchname="patch-5.0-ck${_ckpatchversion}"
 _gcc_more_v='20180509'
+_acspatchname="add-acs-overrides.patch"
+_i915patchname="i915-vga-arbiter.patch"
 source=(
   https://www.kernel.org/pub/linux/kernel/v5.x/linux-$pkgver.tar.{xz,sign}
-  http://ck.kolivas.org/patches/4.0/4.20/4.20-ck${_ckpatchversion}/${_ckpatchname}.xz
+  http://ck.kolivas.org/patches/5.0/5.0/5.0-ck${_ckpatchversion}/${_ckpatchname}.xz
   # the main kernel config files
   config
   60-linux.hook
@@ -28,12 +32,12 @@ source=(
   # standard config files for mkinitcpio ramdisk
   linux.preset
   "enable_additional_cpu_optimizations-$_gcc_more_v.tar.gz::https://github.com/graysky2/kernel_gcc_patch/archive/$_gcc_more_v.tar.gz" # enable_additional_cpu_optimizations_for_gcc
-  add-acs-overrides.patch
-  i915-vga-arbiter.patch
+  $_acspatchname
+  $_i915patchname
     )
-sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
+sha256sums=('16e177662b9fc7255bfc51018513979f6effcbe52e459c543aa83a5b15ef54ec'
             'SKIP'
-            '4bd614333fcbe509118b5362889f76d241e1d33e1ee691bd24fd82384ce7f2de'
+            '661f64bbd8bf49afcc7c760c4148b2e2108511a1eadcae917cfe6056a83d8476'
             'df2ce998b050c707950c555f7f6ec0efcb8498fca10b4bce45f681844c8aa0ab'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             'c043f3033bb781e2688794a59f6d1f7ed49ef9b13eb77ff9a425df33a244a636'
@@ -57,14 +61,11 @@ prepare() {
   echo "-$pkgrel" > localversion.10-pkgrel
   echo "$_kernelname" > localversion.20-pkgname
   
-  local src
-  for src in "${source[@]}"; do
-    src="${src%%::*}"
-    src="${src##*/}"
-    [[ $src = *.patch ]] || continue
-    msg2 "Applying patch $src..."
-    patch -Np1 < "../$src"
-  done
+  if [ -n "$_ACS" ]; then
+	msg "Patching source with acs override"
+	patch -Np1 -i "$srcdir/${_acspatchname}"
+	patch -Np1 -i "$srcdir/${_i915patchname}"
+  fi
 
   # fix naming schema in EXTRAVERSION of ck patch set
   sed -i -re "s/^(.EXTRAVERSION).*$/\1 = /" "../${_ckpatchname}"
